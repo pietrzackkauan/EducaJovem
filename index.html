@@ -1,86 +1,1293 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EducaJovem</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        * {
-            box-sizing: border-box;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EducaJovem - Plataforma de Empregabilidade e Qualificação</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+              950: '#0f172a'
+            },
+            accent: {
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706'
+            }
+          }
         }
-        body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background: #1f2937;
-            color: #ffffff;
-        }
-        .fadeIn {
-            animation: fadeIn 0.6s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        .header, .footer {
-            background: linear-gradient(to right, #6b7280, #1f2937);
-            padding: 1rem;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .button {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-        .button:hover {
-            transform: scale(1.05);
-        }
-    </style>
+      }
+    }
+  </script>
+
+  <!-- React 18 & ReactDOM UMD -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel Standalone for in-browser JSX compilation -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Google Fonts Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * { font-family: 'Inter', system-ui, sans-serif; }
+    h1, h2, h3, .font-heading { font-family: 'Outfit', 'Inter', sans-serif; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+    }
+    .animate-fade-in { animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .dark .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+  </style>
 </head>
-<body>
-    <div id="root"></div>
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased selection:bg-blue-600 selection:text-white">
+  <div id="root"></div>
 
-        function App() {
-            const [darkMode, setDarkMode] = useState(localStorage.getItem('theme') === 'dark');
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef } = React;
 
-            useEffect(() => {
-                document.body.classList.toggle('dark', darkMode);
-                localStorage.setItem('theme', darkMode ? 'dark' : 'light');
-            }, [darkMode]);
+    // DADOS INICIAIS MOCKADOS
+    const DEFAULT_COURSES = [
+      {
+        id: 1,
+        title: "Excel Básico para o Mercado de Trabalho",
+        category: "Administrativo",
+        icon: "fa-file-excel",
+        color: "from-emerald-500 to-teal-600",
+        progress: 65,
+        totalLessons: 8,
+        completedLessons: 5,
+        xp: 120,
+        description: "Aprenda fórmulas essenciais, tabelas dinâmicas e automações para se destacar em qualquer escritório.",
+        lessons: [
+          { id: 1, title: "1. Introdução à Interface e Atalhos", completed: true, content: "O Excel é a ferramenta mais demandada em escritórios. Nesta aula você dominará atalhos rápidos como CTRL+T, CTRL+SHIFT+L (filtros) e formatação condicional." },
+          { id: 2, title: "2. Fórmulas Essenciais (SOMA, MÉDIA, SE)", completed: true, content: "A função =SE(teste; valor_se_verdadeiro; valor_se_falso) permite tomadas de decisão automáticas nas suas planilhas de relatórios." },
+          { id: 3, title: "3. PROCV e PROCX na Prática", completed: true, content: "Como cruzar dados entre diferentes tabelas sem perder tempo. O PROCX substitui o PROCV com maior precisão e rapidez." },
+          { id: 4, title: "4. Tabelas Dinâmicas e Relatórios", completed: true, content: "Crie dashboards resumidos em menos de 2 minutos arrastando campos para linhas e valores de soma." },
+          { id: 5, title: "5. Gráficos Executivos", completed: true, content: "Escolha o gráfico certo: use gráficos de coluna para comparações e linhas para tendências de tempo." },
+          { id: 6, title: "6. Automação de Tarefas Básicas", completed: false, content: "Introdução a gravação de macros para repetir processos diários em um único clique." },
+          { id: 7, title: "7. Validação de Dados e Listas", completed: false, content: "Crie menus suspensos para padronizar o preenchimento de cadastros." },
+          { id: 8, title: "8. Projeto Final de Certificação", completed: false, content: "Construa uma planilha de controle financeiro empresarial do zero." }
+        ]
+      },
+      {
+        id: 2,
+        title: "Atendimento ao Cliente & Comunicação",
+        category: "Atendimento",
+        icon: "fa-headset",
+        color: "from-blue-500 to-indigo-600",
+        progress: 80,
+        totalLessons: 5,
+        completedLessons: 4,
+        xp: 90,
+        description: "Comunicação assertiva, resolução ágil de conflitos e técnicas de fidelização de clientes.",
+        lessons: [
+          { id: 1, title: "1. Escuta Ativa e Empatia", completed: true, content: "O segredo do atendimento memorável é ouvir para compreender, e não apenas para responder." },
+          { id: 2, title: "2. Comunicação Não-Violenta (CNV)", completed: true, content: "Como transformar reclamações de clientes insatisfeitos em soluções construtivas." },
+          { id: 3, title: "3. Atendimento Digital (WhatsApp/Chat)", completed: true, content: "Boas práticas de tom de voz, rapidez e uso profissional de emojis no suporte digital." },
+          { id: 4, title: "4. Resolução Rápida de Conflitos", completed: true, content: "Método em 4 passos: Ouvir, Acolher, Propor Solução e Acompanhar a satisfação." },
+          { id: 5, title: "5. Avaliação Final de Habilidades", completed: false, content: "Simulação de 3 casos reais de atendimento crítico." }
+        ]
+      },
+      {
+        id: 3,
+        title: "Marketing Digital & Criação de Conteúdo",
+        category: "Marketing",
+        icon: "fa-bullhorn",
+        color: "from-purple-500 to-pink-600",
+        progress: 25,
+        totalLessons: 6,
+        completedLessons: 1,
+        xp: 150,
+        description: "Copywriting, gestão de redes sociais para empresas e introdução a tráfego pago.",
+        lessons: [
+          { id: 1, title: "1. Fundamentos de Marketing Digital", completed: true, content: "Entenda o funil de vendas (Atração, Consideração, Conversão) e a jornada do consumidor." },
+          { id: 2, title: "2. Copywriting e Gatilhos Mentais", completed: false, content: "Como escrever textos persuasivos usando urgência, prova social e autoridade." },
+          { id: 3, title: "3. Design Básico no Canva", completed: false, content: "Crie artes profissionais com hierarquia visual e harmonia de cores." },
+          { id: 4, title: "4. Planejamento de Redes Sociais", completed: false, content: "Construa um calendário editorial semanal de posts e reels." },
+          { id: 5, title: "5. Introdução a Meta Ads", completed: false, content: "Como criar sua primeira campanha de anúncios para alcançar pessoas da sua cidade." },
+          { id: 6, title: "6. Métricas e Resultados (ROI e CTR)", completed: false, content: "Analise se os seus posts estão trazendo clientes reais." }
+        ]
+      },
+      {
+        id: 4,
+        title: "Desenvolvimento Web & Lógica de Programação",
+        category: "Tecnologia",
+        icon: "fa-code",
+        color: "from-amber-500 to-orange-600",
+        progress: 40,
+        totalLessons: 10,
+        completedLessons: 4,
+        xp: 200,
+        description: "HTML5, CSS3, JavaScript moderno e como criar seus primeiros sites profissionais.",
+        lessons: [
+          { id: 1, title: "1. Como a Internet Funciona", completed: true, content: "Servidores, navegadores, protocolos HTTP/HTTPS e DNS explicados de forma simples." },
+          { id: 2, title: "2. Estrutura com HTML5", completed: true, content: "Tags semânticas: header, nav, main, section, footer e acessibilidade." },
+          { id: 3, title: "3. Estilização com CSS3 & Flexbox", completed: true, content: "Alinhamento moderno e layouts responsivos para celular." },
+          { id: 4, title: "4. Fundamentos de JavaScript", completed: true, content: "Variáveis, funções, condicionais e manipulação do DOM." },
+          { id: 5, title: "5. Projetinho: Calculadora Web", completed: false, content: "Crie sua primeira aplicação interativa no navegador." }
+        ]
+      }
+    ];
 
-            return (
-                <div style={{
-                    background: darkMode ? '#1b1b1b' : '#f5f5f5',
-                    color: darkMode ? '#ffffff' : '#000000',
-                }}>
-                    <header className="header">
-                        <h1>EducaJovem</h1>
-                        <button className="button" onClick={() => setDarkMode(!darkMode)}>
-                            {darkMode ? <i className="fa-solid fa-sun"></i> : <i className="fa-solid fa-moon"></i>}
-                            {darkMode ? ' Modo Claro' : ' Modo Escuro'}
-                        </button>
-                    </header>
-                    <main className="content fadeIn">
-                        <p>Bem-vindo à plataforma de empregabilidade jovem!</p>
-                    </main>
-                    <footer className="footer">
-                        <p>&copy; 2023 EducaJovem</p>
-                    </footer>
-                </div>
-            );
+    const DEFAULT_CANDIDATES = [
+      {
+        id: 1,
+        name: "Lucas Gabriel Ferreira",
+        age: 19,
+        city: "Curitiba - PR",
+        area: "Tecnologia",
+        match: 96,
+        skills: ["JavaScript", "HTML/CSS", "Git", "Excel Intermediário", "Inglês Básico"],
+        coursesDone: 4,
+        xp: 540,
+        bio: "Estudante dedicado, apaixonado por tecnologia e automações. Busco primeira oportunidade como Júnior/Estagiário em desenvolvimento ou suporte.",
+        saved: true
+      },
+      {
+        id: 2,
+        name: "Beatriz Helena Silva",
+        age: 18,
+        city: "São José dos Pinhais - PR",
+        area: "Administrativo",
+        match: 92,
+        skills: ["Excel Avançado", "Atendimento", "Organização", "Redação Empresarial"],
+        coursesDone: 5,
+        xp: 680,
+        bio: "Comunicativa e organizada. Concluiu curso de Rotinas Administrativas com nota máxima.",
+        saved: false
+      },
+      {
+        id: 3,
+        name: "Matheus Henrique Santos",
+        age: 20,
+        city: "Curitiba - PR",
+        area: "Marketing",
+        match: 88,
+        skills: ["Canva", "Copywriting", "Instagram Ads", "Edição de Vídeo"],
+        coursesDone: 3,
+        xp: 410,
+        bio: "Criativo, focado em redes sociais e produção de conteúdo dinâmico para pequenas e médias empresas.",
+        saved: true
+      },
+      {
+        id: 4,
+        name: "Camila Rodrigues Lima",
+        age: 19,
+        city: "Araucária - PR",
+        area: "Atendimento",
+        match: 94,
+        skills: ["Atendimento ao Cliente", "Empatia", "Resolução de Problemas", "Vendas"],
+        coursesDone: 6,
+        xp: 720,
+        bio: "Experiência prática em atendimento humanizado e facilidade com sistemas de chat e CRM.",
+        saved: false
+      }
+    ];
+
+    const DEFAULT_VACANCIES = [
+      { id: 1, title: "Jovem Aprendiz Administrativo", company: "Grupo Positivo", city: "Curitiba - PR", salary: "R$ 1.150,00", type: "Meio Período", match: 95, icon: "fa-building" },
+      { id: 2, title: "Estagiário de Suporte / TI", company: "TechPar Soluções", city: "Curitiba - PR", salary: "R$ 1.400,00", type: "Híbrido", match: 92, icon: "fa-laptop-code" },
+      { id: 3, title: "Auxiliar de Atendimento ao Cliente", company: "Varejo Brasil S/A", city: "Curitiba - PR", salary: "R$ 1.580,00", type: "Presencial", match: 89, icon: "fa-headset" }
+    ];
+
+    const QUIZ_QUESTIONS = [
+      {
+        id: 1,
+        question: "Qual atalho do Excel é mais recomendado para ativar os filtros em uma tabela rapidamente?",
+        options: [
+          "CTRL + C",
+          "CTRL + SHIFT + L",
+          "ALT + F4",
+          "CTRL + Z"
+        ],
+        correct: 1,
+        explanation: "O atalho CTRL + SHIFT + L ativa e desativa instantaneamente as setas de filtro nos cabeçalhos da tabela."
+      },
+      {
+        id: 2,
+        question: "No atendimento profissional, o que significa a técnica da 'Escuta Ativa'?",
+        options: [
+          "Interromper o cliente para responder mais rápido.",
+          "Apenas fingir que está prestando atenção.",
+          "Ouvir com atenção total para entender a real necessidade antes de responder.",
+          "Transferir a ligação para outro atendente."
+        ],
+        correct: 2,
+        explanation: "Escuta ativa é a prática de ouvir com atenção genuína, sem julgamentos prévios, para propor a solução mais assertiva."
+      },
+      {
+        id: 3,
+        question: "No marketing digital, o que representa a sigla 'CTA' (Call to Action)?",
+        options: [
+          "Uma chamada clara para a ação do usuário (ex: 'Compre Agora', 'Cadastre-se').",
+          "O custo total de um anúncio pago.",
+          "O cancelamento de uma conta de rede social.",
+          "Um tipo de vírus de computador."
+        ],
+        correct: 0,
+        explanation: "CTA (Call to Action) é o botão ou texto que direciona o usuário para o próximo passo desejado na página."
+      }
+    ];
+
+    function App() {
+      // Estado Geral
+      const [view, setView] = useState('landing'); // 'landing', 'student-dash', 'company-dash', 'course-view', 'quiz-view'
+      const [userType, setUserType] = useState(null); // 'student' | 'company'
+      const [darkMode, setDarkMode] = useState(() => localStorage.getItem('ej_theme') === 'dark');
+      const [activeTab, setActiveTab] = useState('overview'); // student: overview, courses, futuca, profile, settings | company: overview, search, saved, jobs
+      
+      // Estado de Dados
+      const [courses, setCourses] = useState(() => {
+        const saved = localStorage.getItem('ej_courses');
+        return saved ? JSON.parse(saved) : DEFAULT_COURSES;
+      });
+      const [selectedCourse, setSelectedCourse] = useState(null);
+      const [selectedLesson, setSelectedLesson] = useState(null);
+      
+      const [candidates, setCandidates] = useState(() => {
+        const saved = localStorage.getItem('ej_candidates');
+        return saved ? JSON.parse(saved) : DEFAULT_CANDIDATES;
+      });
+      
+      const [searchTerm, setSearchTerm] = useState('');
+      const [filterArea, setFilterArea] = useState('all');
+      const [toastMessage, setToastMessage] = useState(null);
+      const [offerModalCandidate, setOfferModalCandidate] = useState(null);
+      const [offerMessage, setOfferMessage] = useState('');
+
+      // Quiz State
+      const [quizIndex, setQuizIndex] = useState(0);
+      const [quizSelected, setQuizSelected] = useState(null);
+      const [quizScore, setQuizScore] = useState(0);
+      const [quizFinished, setQuizFinished] = useState(false);
+
+      // Student Profile State
+      const [studentProfile, setStudentProfile] = useState({
+        name: "Kauan Pietrzack",
+        email: "kauan.pietrzack@email.com",
+        city: "Curitiba - PR",
+        area: "Tecnologia & Inovação",
+        xp: 850,
+        level: "Nível 4 - Especialista Júnior",
+        skills: ["React", "JavaScript", "Excel Avançado", "Comunicação", "Git", "Atendimento"]
+      });
+
+      // Sincronização de Tema
+      useEffect(() => {
+        if (darkMode) {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('ej_theme', 'dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          localStorage.setItem('ej_theme', 'light');
         }
+      }, [darkMode]);
 
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-    </script>
+      // Salvar cursos e candidatos no localStorage
+      useEffect(() => {
+        localStorage.setItem('ej_courses', JSON.stringify(courses));
+      }, [courses]);
+
+      useEffect(() => {
+        localStorage.setItem('ej_candidates', JSON.stringify(candidates));
+      }, [candidates]);
+
+      const showToast = (msg, icon = "fa-check-circle") => {
+        setToastMessage({ text: msg, icon });
+        setTimeout(() => setToastMessage(null), 3500);
+      };
+
+      const handleToggleSaveCandidate = (id) => {
+        setCandidates(prev => prev.map(c => {
+          if (c.id === id) {
+            const nextState = !c.saved;
+            showToast(nextState ? `${c.name} salvo aos seus talentos!` : `${c.name} removido dos salvos.`, nextState ? "fa-bookmark" : "fa-trash");
+            return { ...c, saved: nextState };
+          }
+          return c;
+        }));
+      };
+
+      const handleSendOffer = (e) => {
+        e.preventDefault();
+        showToast(`Proposta enviada com sucesso para ${offerModalCandidate.name}!`, "fa-paper-plane");
+        if (window.confetti) {
+          window.confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+        }
+        setOfferModalCandidate(null);
+        setOfferMessage('');
+      };
+
+      const handleCompleteLesson = (courseId, lessonId) => {
+        setCourses(prev => prev.map(course => {
+          if (course.id === courseId) {
+            const updatedLessons = course.lessons.map(l => l.id === lessonId ? { ...l, completed: true } : l);
+            const completedCount = updatedLessons.filter(l => l.completed).length;
+            const newProgress = Math.round((completedCount / updatedLessons.length) * 100);
+            return {
+              ...course,
+              lessons: updatedLessons,
+              completedLessons: completedCount,
+              progress: newProgress
+            };
+          }
+          return course;
+        }));
+        showToast("Aula concluída! +25 XP conquistados", "fa-star");
+        if (window.confetti) {
+          window.confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+        }
+      };
+
+      const handleAnswerQuiz = (optionIdx) => {
+        if (quizSelected !== null) return;
+        setQuizSelected(optionIdx);
+        const currentQ = QUIZ_QUESTIONS[quizIndex];
+        const isCorrect = optionIdx === currentQ.correct;
+        
+        if (isCorrect) {
+          setQuizScore(prev => prev + 1);
+          showToast("Resposta correta! +50 XP", "fa-check");
+        } else {
+          showToast("Resposta incorreta. Revise o conteúdo!", "fa-times-circle");
+        }
+      };
+
+      const handleNextQuiz = () => {
+        if (quizIndex + 1 < QUIZ_QUESTIONS.length) {
+          setQuizIndex(prev => prev + 1);
+          setQuizSelected(null);
+        } else {
+          setQuizFinished(true);
+          if (window.confetti) {
+            window.confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } });
+          }
+        }
+      };
+
+      const handleStartCourse = (course) => {
+        setSelectedCourse(course);
+        setSelectedLesson(course.lessons[0]);
+        setView('course-view');
+      };
+
+      // FILTRAGEM DE CANDIDATOS
+      const filteredCandidates = useMemo(() => {
+        return candidates.filter(c => {
+          const matchSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                              c.skills.some(s => s.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                              c.city.toLowerCase().includes(searchTerm.toLowerCase());
+          const matchArea = filterArea === 'all' || c.area === filterArea;
+          return matchSearch && matchArea;
+        });
+      }, [candidates, searchTerm, filterArea]);
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          {/* TOAST DE NOTIFICAÇÃO */}
+          {toastMessage && (
+            <div className="fixed bottom-6 right-6 z-50 animate-fade-in flex items-center gap-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-3.5 rounded-xl shadow-2xl border border-slate-700 dark:border-slate-200">
+              <i className={`fas ${toastMessage.icon} text-amber-400 dark:text-blue-600 text-lg`}></i>
+              <span className="font-medium text-sm">{toastMessage.text}</span>
+            </div>
+          )}
+
+          {/* CABEÇALHO GLOBAL */}
+          <header className="sticky top-0 z-40 glass-card border-b border-slate-200 dark:border-slate-800 transition-colors">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+              {/* LOGO */}
+              <div 
+                onClick={() => setView('landing')}
+                className="flex items-center gap-3 cursor-pointer group select-none"
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform">
+                  <i className="fas fa-graduation-cap text-lg"></i>
+                </div>
+                <div>
+                  <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-700 to-amber-500 dark:from-blue-400 dark:to-amber-400 bg-clip-text text-transparent">
+                    EducaJovem
+                  </span>
+                  <span className="hidden sm:inline-block ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300">
+                    Pro
+                  </span>
+                </div>
+              </div>
+
+              {/* AÇÕES HEADER */}
+              <div className="flex items-center gap-3">
+                {/* BOTÃO DARK MODE */}
+                <button
+                  onClick={() => setDarkMode(!darkMode)}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors"
+                  title="Alternar Modo Claro/Escuro"
+                >
+                  <i className={`fas ${darkMode ? 'fa-sun text-amber-400' : 'fa-moon text-blue-600'}`}></i>
+                </button>
+
+                {view === 'landing' ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => { setUserType('student'); setView('student-dash'); setActiveTab('overview'); }}
+                      className="px-4 py-2 rounded-xl text-sm font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors"
+                    >
+                      Sou Jovem
+                    </button>
+                    <button
+                      onClick={() => { setUserType('company'); setView('company-dash'); setActiveTab('overview'); }}
+                      className="px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-800 hover:to-blue-700 text-white shadow-md shadow-blue-600/20 transition-all"
+                    >
+                      Sou Empresa
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div className="hidden sm:flex flex-col text-right">
+                      <span className="text-sm font-semibold leading-tight">
+                        {userType === 'student' ? studentProfile.name : 'TechPar RH'}
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                        {userType === 'student' ? studentProfile.level : 'Empresa Parceira'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setView('landing')}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1.5"
+                    >
+                      <i className="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+
+          {/* CONTEÚDO PRINCIPAL (ROTEAMENTO) */}
+          <main className="flex-1 flex flex-col">
+            {/* 1. TELA LANDING PAGE */}
+            {view === 'landing' && (
+              <div className="flex-1 animate-fade-in">
+                {/* HERO SECTION */}
+                <div className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-blue-500/20 to-amber-400/20 rounded-full blur-3xl pointer-events-none"></div>
+
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-100 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-xs font-semibold uppercase tracking-wider mb-6">
+                      <i className="fas fa-sparkles text-amber-500"></i> Plataforma Oficial EducaJovem
+                    </div>
+
+                    <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white max-w-4xl mx-auto leading-tight sm:leading-none">
+                      O seu passaporte para o <span className="bg-gradient-to-r from-blue-700 via-blue-600 to-amber-500 dark:from-blue-400 dark:to-amber-400 bg-clip-text text-transparent">primeiro emprego</span> e qualificação.
+                    </h1>
+
+                    <p className="mt-6 text-lg sm:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto font-normal">
+                      Cursos práticos, inteligência artificial para match de vagas e conexão direta com as melhores empresas que contratam jovens talentos.
+                    </p>
+
+                    {/* CARDS DE ACESSO RÁPIDO */}
+                    <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                      {/* CARD ALUNO */}
+                      <div 
+                        onClick={() => { setUserType('student'); setView('student-dash'); setActiveTab('overview'); }}
+                        className="glass-card p-8 rounded-3xl text-left cursor-pointer group hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/10 transition-all border-2 border-transparent hover:border-blue-500"
+                      >
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-700 to-blue-500 text-white flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-blue-600/30">
+                          <i className="fas fa-user-graduate"></i>
+                        </div>
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Sou Aluno / Jovem</h3>
+                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                          Acesse cursos gratuitos, ganhe certificados oficiais, faça questionários interativos e receba ofertas de emprego via FutucaAI.
+                        </p>
+                        <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
+                          Entrar na Área do Aluno <i className="fas fa-arrow-right text-xs"></i>
+                        </div>
+                      </div>
+
+                      {/* CARD EMPRESA */}
+                      <div 
+                        onClick={() => { setUserType('company'); setView('company-dash'); setActiveTab('overview'); }}
+                        className="glass-card p-8 rounded-3xl text-left cursor-pointer group hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/10 transition-all border-2 border-transparent hover:border-amber-500"
+                      >
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-600 text-white flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-amber-500/30">
+                          <i className="fas fa-briefcase"></i>
+                        </div>
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Sou Empresa</h3>
+                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                          Encontre jovens qualificados com filtros por habilidades, salve talentos em listas personalizadas e envie ofertas de contratação direto.
+                        </p>
+                        <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-amber-600 dark:text-amber-400 group-hover:translate-x-1 transition-transform">
+                          Entrar no Painel de Recrutamento <i className="fas fa-arrow-right text-xs"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* MÉTRICAS DE IMPACTO */}
+                    <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-4xl mx-auto border-t border-slate-200 dark:border-slate-800 pt-10">
+                      <div>
+                        <div className="text-3xl font-extrabold text-blue-600 dark:text-blue-400">+1.200</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Jovens Qualificados</div>
+                      </div>
+                      <div>
+                        <div className="text-3xl font-extrabold text-amber-500">+85</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Empresas Parceiras</div>
+                      </div>
+                      <div>
+                        <div className="text-3xl font-extrabold text-emerald-500">94%</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Taxa de Aprovação</div>
+                      </div>
+                      <div>
+                        <div className="text-3xl font-extrabold text-indigo-500">+350</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Contratações Realizadas</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 2. ÁREA DO ALUNO (DASHBOARD) */}
+            {view === 'student-dash' && (
+              <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+                {/* NAVEGAÇÃO INTERNA DO ALUNO */}
+                <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-4 mb-8 overflow-x-auto custom-scrollbar">
+                  {[
+                    { id: 'overview', label: 'Visão Geral', icon: 'fa-home' },
+                    { id: 'courses', label: 'Meus Cursos', icon: 'fa-book-open' },
+                    { id: 'futuca', label: 'FutucaAI (Vagas & Match)', icon: 'fa-robot' },
+                    { id: 'quiz', label: 'Questionário Interativo', icon: 'fa-vial' },
+                    { id: 'profile', label: 'Meu Perfil', icon: 'fa-user' }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap flex items-center gap-2 transition-all ${
+                        activeTab === tab.id
+                          ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                      }`}
+                    >
+                      <i className={`fas ${tab.icon}`}></i>
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* ABA VISÃO GERAL */}
+                {activeTab === 'overview' && (
+                  <div className="space-y-8 animate-fade-in">
+                    {/* BANNER DE BOAS-VINDAS */}
+                    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-8 sm:p-10 shadow-2xl shadow-blue-950/20">
+                      <div className="relative z-10 max-w-2xl">
+                        <span className="inline-block px-3 py-1 rounded-full bg-white/10 text-amber-300 text-xs font-semibold uppercase tracking-wider mb-3">
+                          <i className="fas fa-fire mr-1"></i> Sequência de 4 dias de estudo
+                        </span>
+                        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                          Olá, {studentProfile.name.split(' ')[0]}! 🚀
+                        </h2>
+                        <p className="mt-2 text-blue-100 text-sm sm:text-base">
+                          Você completou <strong>65%</strong> do curso de Excel e há <strong>3 novas vagas</strong> compatíveis com o seu perfil no FutucaAI.
+                        </p>
+                        <div className="mt-6 flex flex-wrap items-center gap-4">
+                          <button
+                            onClick={() => handleStartCourse(courses[0])}
+                            className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-sm shadow-lg shadow-amber-500/30 transition-all flex items-center gap-2"
+                          >
+                            <i className="fas fa-play"></i> Continuar Excel Básico
+                          </button>
+                          <button
+                            onClick={() => setActiveTab('futuca')}
+                            className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm backdrop-blur-md transition-all flex items-center gap-2"
+                          >
+                            <i className="fas fa-briefcase"></i> Ver Vagas Compatíveis
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CARDS DE ESTATÍSTICAS */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+                      <div className="glass-card p-5 rounded-2xl">
+                        <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg mb-3">
+                          <i className="fas fa-book-reader"></i>
+                        </div>
+                        <div className="text-2xl font-bold">4 Cursos</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">Em andamento</div>
+                      </div>
+
+                      <div className="glass-card p-5 rounded-2xl">
+                        <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg mb-3">
+                          <i className="fas fa-star"></i>
+                        </div>
+                        <div className="text-2xl font-bold">{studentProfile.xp} XP</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">{studentProfile.level}</div>
+                      </div>
+
+                      <div className="glass-card p-5 rounded-2xl">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg mb-3">
+                          <i className="fas fa-certificate"></i>
+                        </div>
+                        <div className="text-2xl font-bold">2 Certificados</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">Emitidos e verificados</div>
+                      </div>
+
+                      <div className="glass-card p-5 rounded-2xl">
+                        <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg mb-3">
+                          <i className="fas fa-handshake"></i>
+                        </div>
+                        <div className="text-2xl font-bold">3 Propostas</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">Empresas visualizaram você</div>
+                      </div>
+                    </div>
+
+                    {/* MEUS CURSOS - SEÇÃO RESUMIDA */}
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-bold">Cursos em Andamento</h3>
+                        <button 
+                          onClick={() => setActiveTab('courses')}
+                          className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          Ver todos os cursos <i className="fas fa-arrow-right text-xs"></i>
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {courses.slice(0, 2).map(course => (
+                          <div key={course.id} className="glass-card p-6 rounded-2xl hover:shadow-xl transition-all flex flex-col justify-between">
+                            <div>
+                              <div className="flex items-center justify-between mb-4">
+                                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300">
+                                  {course.category}
+                                </span>
+                                <span className="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                  <i className="fas fa-bolt"></i> +{course.xp} XP
+                                </span>
+                              </div>
+                              <h4 className="text-lg font-bold text-slate-900 dark:text-white">{course.title}</h4>
+                              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{course.description}</p>
+                            </div>
+
+                            <div className="mt-6">
+                              <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
+                                <span>Progresso ({course.completedLessons}/{course.totalLessons} aulas)</span>
+                                <span>{course.progress}%</span>
+                              </div>
+                              <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                                <div 
+                                  className="bg-gradient-to-r from-blue-600 to-amber-500 h-full rounded-full transition-all duration-500"
+                                  style={{ width: `${course.progress}%` }}
+                                ></div>
+                              </div>
+                              <button
+                                onClick={() => handleStartCourse(course)}
+                                className="mt-4 w-full py-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-600 hover:text-white text-blue-700 dark:text-blue-300 font-bold text-xs transition-colors flex items-center justify-center gap-2"
+                              >
+                                <i className="fas fa-play text-xs"></i> Continuar Estudos
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ABA MEUS CURSOS COMPLETA */}
+                {activeTab === 'courses' && (
+                  <div className="space-y-6 animate-fade-in">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <h2 className="text-2xl font-bold">Catálogo de Cursos & Certificações</h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">Todos os cursos possuem certificados digitais aceitos no mercado.</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {courses.map(course => (
+                        <div key={course.id} className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:scale-[1.02] hover:shadow-2xl transition-all">
+                          <div>
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-600 text-white flex items-center justify-center text-xl mb-4 shadow-md">
+                              <i className={`fas ${course.icon}`}></i>
+                            </div>
+                            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                              {course.category}
+                            </span>
+                            <h3 className="text-lg font-bold mt-2.5 leading-snug">{course.title}</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 line-clamp-3">{course.description}</p>
+                          </div>
+
+                          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
+                            <div className="flex items-center justify-between text-xs font-medium mb-2">
+                              <span>{course.completedLessons} de {course.totalLessons} aulas</span>
+                              <span className="font-bold text-blue-600 dark:text-blue-400">{course.progress}%</span>
+                            </div>
+                            <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden mb-4">
+                              <div className="bg-gradient-to-r from-blue-600 to-amber-500 h-full rounded-full" style={{ width: `${course.progress}%` }}></div>
+                            </div>
+                            <button
+                              onClick={() => handleStartCourse(course)}
+                              className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+                            >
+                              <i className="fas fa-play text-xs"></i> Acessar Aulas
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ABA FUTUCA AI (RECOMENDAÇÕES DE VAGAS) */}
+                {activeTab === 'futuca' && (
+                  <div className="space-y-6 animate-fade-in">
+                    <div className="glass-card p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-purple-900/40 border border-blue-500/30">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center text-lg font-bold shadow-lg">
+                          <i className="fas fa-robot"></i>
+                        </div>
+                        <h2 className="text-2xl font-extrabold">FutucaAI - Inteligência de Oportunidades</h2>
+                      </div>
+                      <p className="text-sm text-slate-300 max-w-2xl">
+                        Nosso algoritmo de IA analisa suas habilidades e cursos concluídos para encontrar vagas com alta probabilidade de contratação.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      {DEFAULT_VACANCIES.map(vac => (
+                        <div key={vac.id} className="glass-card p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-blue-500 transition-all">
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl shrink-0">
+                              <i className={`fas ${vac.icon}`}></i>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="text-lg font-bold">{vac.title}</h3>
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                                  {vac.match}% Match IA
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 mt-1 flex-wrap">
+                                <span><i className="fas fa-building mr-1"></i> {vac.company}</span>
+                                <span><i className="fas fa-map-marker-alt mr-1"></i> {vac.city}</span>
+                                <span><i className="fas fa-money-bill-wave mr-1 text-emerald-500"></i> {vac.salary}</span>
+                                <span><i className="fas fa-clock mr-1"></i> {vac.type}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              onClick={() => {
+                                showToast(`Candidatura enviada para ${vac.company}!`, "fa-check-circle");
+                                if (window.confetti) window.confetti({ particleCount: 60 });
+                              }}
+                              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all"
+                            >
+                              Candidatar-se com 1 Clique
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ABA QUESTIONÁRIO INTERATIVO */}
+                {activeTab === 'quiz' && (
+                  <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
+                    {!quizFinished ? (
+                      <div className="glass-card p-8 rounded-3xl shadow-xl">
+                        <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-wider">
+                          <span>Pergunta {quizIndex + 1} de {QUIZ_QUESTIONS.length}</span>
+                          <span className="text-amber-500"><i className="fas fa-star mr-1"></i> +50 XP por acerto</span>
+                        </div>
+
+                        <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden mb-6">
+                          <div 
+                            className="bg-blue-600 h-full transition-all duration-300"
+                            style={{ width: `${((quizIndex + 1) / QUIZ_QUESTIONS.length) * 100}%` }}
+                          ></div>
+                        </div>
+
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
+                          {QUIZ_QUESTIONS[quizIndex].question}
+                        </h3>
+
+                        {/* OPÇÕES */}
+                        <div className="mt-6 space-y-3">
+                          {QUIZ_QUESTIONS[quizIndex].options.map((option, idx) => {
+                            let btnStyle = "glass-card hover:bg-slate-100 dark:hover:bg-slate-800/80 border-slate-200 dark:border-slate-700";
+                            if (quizSelected !== null) {
+                              if (idx === QUIZ_QUESTIONS[quizIndex].correct) {
+                                btnStyle = "bg-emerald-500 text-white border-emerald-600 shadow-lg shadow-emerald-500/20";
+                              } else if (idx === quizSelected) {
+                                btnStyle = "bg-red-500 text-white border-red-600";
+                              }
+                            }
+                            return (
+                              <button
+                                key={idx}
+                                disabled={quizSelected !== null}
+                                onClick={() => handleAnswerQuiz(idx)}
+                                className={`w-full text-left p-4 rounded-2xl border text-sm font-semibold transition-all flex items-center justify-between ${btnStyle}`}
+                              >
+                                <span>{option}</span>
+                                {quizSelected !== null && idx === QUIZ_QUESTIONS[quizIndex].correct && (
+                                  <i className="fas fa-check-circle text-lg"></i>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* EXPLICAÇÃO & PRÓXIMO */}
+                        {quizSelected !== null && (
+                          <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800 animate-fade-in">
+                            <p className="text-xs text-slate-600 dark:text-slate-300 mb-4 bg-slate-100 dark:bg-slate-800/60 p-3.5 rounded-xl">
+                              <strong>Explicação:</strong> {QUIZ_QUESTIONS[quizIndex].explanation}
+                            </p>
+                            <button
+                              onClick={handleNextQuiz}
+                              className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+                            >
+                              {quizIndex + 1 < QUIZ_QUESTIONS.length ? "Próxima Pergunta" : "Ver Meu Resultado"} <i className="fas fa-arrow-right text-xs"></i>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="glass-card p-10 rounded-3xl text-center animate-fade-in shadow-2xl">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center text-4xl mx-auto mb-4 shadow-xl">
+                          <i className="fas fa-trophy"></i>
+                        </div>
+                        <h2 className="text-3xl font-extrabold">Parabéns! Questionário Concluído</h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                          Você acertou <strong>{quizScore} de {QUIZ_QUESTIONS.length}</strong> perguntas e conquistou <strong>+{quizScore * 50} XP</strong> para seu perfil!
+                        </p>
+                        <div className="mt-8 flex justify-center gap-3">
+                          <button
+                            onClick={() => {
+                              setQuizIndex(0);
+                              setQuizSelected(null);
+                              setQuizScore(0);
+                              setQuizFinished(false);
+                            }}
+                            className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all"
+                          >
+                            Refazer Questionário
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ABA MEU PERFIL */}
+                {activeTab === 'profile' && (
+                  <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
+                    <div className="glass-card p-8 rounded-3xl shadow-xl">
+                      <div className="flex flex-col sm:flex-row items-center gap-6">
+                        <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-blue-700 via-blue-600 to-amber-500 text-white flex items-center justify-center text-3xl font-bold shadow-xl">
+                          KP
+                        </div>
+                        <div className="text-center sm:text-left flex-1">
+                          <h2 className="text-2xl font-bold">{studentProfile.name}</h2>
+                          <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center justify-center sm:justify-start gap-2 mt-1">
+                            <i className="fas fa-map-marker-alt text-red-500"></i> {studentProfile.city} • <i className="fas fa-envelope text-blue-500"></i> {studentProfile.email}
+                          </p>
+                          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 text-xs font-bold">
+                            <i className="fas fa-medal text-amber-500"></i> {studentProfile.level} ({studentProfile.xp} XP)
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+                        <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
+                          Minhas Habilidades Comprovadas
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {studentProfile.skills.map((skill, i) => (
+                            <span key={i} className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                              <i className="fas fa-check text-emerald-500 mr-1.5"></i> {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 3. SALA DE AULA (VISUALIZAÇÃO DE CURSO E CONTEÚDO) */}
+            {view === 'course-view' && selectedCourse && (
+              <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-fade-in flex flex-col lg:flex-row gap-8">
+                {/* MENU LATERAL DE AULAS */}
+                <div className="w-full lg:w-80 glass-card p-6 rounded-3xl h-fit">
+                  <button
+                    onClick={() => { setView('student-dash'); setActiveTab('courses'); }}
+                    className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline mb-4 flex items-center gap-1"
+                  >
+                    <i className="fas fa-arrow-left"></i> Voltar aos Cursos
+                  </button>
+
+                  <h3 className="font-bold text-lg leading-tight">{selectedCourse.title}</h3>
+                  <div className="mt-2 text-xs text-slate-500 dark:text-slate-400 mb-4">
+                    {selectedCourse.completedLessons} de {selectedCourse.lessons.length} aulas concluídas ({selectedCourse.progress}%)
+                  </div>
+
+                  <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden mb-6">
+                    <div className="bg-gradient-to-r from-blue-600 to-amber-500 h-full" style={{ width: `${selectedCourse.progress}%` }}></div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {selectedCourse.lessons.map(lesson => (
+                      <button
+                        key={lesson.id}
+                        onClick={() => setSelectedLesson(lesson)}
+                        className={`w-full text-left p-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all ${
+                          selectedLesson?.id === lesson.id
+                            ? 'bg-blue-600 text-white shadow-md'
+                            : 'hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <span className="truncate mr-2">{lesson.title}</span>
+                        <i className={`fas ${lesson.completed ? 'fa-check-circle text-emerald-400' : 'fa-circle text-slate-400'} text-sm`}></i>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ÁREA DE LEITURA E CONTEÚDO */}
+                <div className="flex-1 glass-card p-8 rounded-3xl flex flex-col justify-between">
+                  {selectedLesson ? (
+                    <div>
+                      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 mb-6">
+                        <span className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                          {selectedCourse.title}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          Aula {selectedLesson.id}
+                        </span>
+                      </div>
+
+                      <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-6">
+                        {selectedLesson.title}
+                      </h2>
+
+                      <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 leading-relaxed space-y-4 text-base">
+                        <p>{selectedLesson.content}</p>
+                        <div className="bg-blue-50 dark:bg-blue-950/40 p-5 rounded-2xl border border-blue-200 dark:border-blue-800/60 my-6">
+                          <h4 className="font-bold text-blue-900 dark:text-blue-300 text-sm flex items-center gap-2 mb-2">
+                            <i className="fas fa-lightbulb text-amber-500"></i> Dica Prática de Empregabilidade
+                          </h4>
+                          <p className="text-xs text-slate-600 dark:text-slate-400">
+                            Recrutadores adoram candidatos que demonstram domínio prático dessa habilidade durante a entrevista técnica. Adicione este tópico ao seu currículo!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-slate-500">Selecione uma aula ao lado.</div>
+                  )}
+
+                  <div className="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <button
+                      onClick={() => {
+                        const idx = selectedCourse.lessons.findIndex(l => l.id === selectedLesson?.id);
+                        if (idx > 0) setSelectedLesson(selectedCourse.lessons[idx - 1]);
+                      }}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      <i className="fas fa-chevron-left mr-1"></i> Aula Anterior
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (selectedCourse && selectedLesson) {
+                          handleCompleteLesson(selectedCourse.id, selectedLesson.id);
+                        }
+                      }}
+                      className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2"
+                    >
+                      <i className="fas fa-check"></i> Marcar como Concluída
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const idx = selectedCourse.lessons.findIndex(l => l.id === selectedLesson?.id);
+                        if (idx < selectedCourse.lessons.length - 1) setSelectedLesson(selectedCourse.lessons[idx + 1]);
+                      }}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
+                    >
+                      Próxima Aula <i className="fas fa-chevron-right ml-1"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 4. ÁREA DA EMPRESA (PAINEL DE RECRUTAMENTO) */}
+            {view === 'company-dash' && (
+              <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+                {/* HEADER DA EMPRESA */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6 mb-8">
+                  <div>
+                    <h2 className="text-3xl font-extrabold">Painel de Recrutamento</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Banco de talentos qualificados e prontos para contratação.</p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setActiveTab('overview')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                        activeTab === 'overview' ? 'bg-blue-600 text-white' : 'glass-card hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <i className="fas fa-users mr-1.5"></i> Todos os Talentos ({candidates.length})
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('saved')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                        activeTab === 'saved' ? 'bg-amber-500 text-slate-950 font-bold' : 'glass-card hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <i className="fas fa-bookmark mr-1.5"></i> Salvos ({candidates.filter(c => c.saved).length})
+                    </button>
+                  </div>
+                </div>
+
+                {/* BARRA DE PESQUISA E FILTROS */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                  <div className="sm:col-span-2 relative">
+                    <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input
+                      type="text"
+                      placeholder="Buscar por nome, habilidade (ex: Excel, React, Vendas) ou cidade..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-11 pr-4 py-3 rounded-2xl glass-card text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-400"
+                    />
+                  </div>
+
+                  <div>
+                    <select
+                      value={filterArea}
+                      onChange={(e) => setFilterArea(e.target.value)}
+                      className="w-full px-4 py-3 rounded-2xl glass-card text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    >
+                      <option value="all">Todas as Áreas de Atuação</option>
+                      <option value="Tecnologia">Tecnologia & TI</option>
+                      <option value="Administrativo">Administrativo & Finanças</option>
+                      <option value="Marketing">Marketing & Design</option>
+                      <option value="Atendimento">Atendimento & Vendas</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* GRID DE TALENTOS */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {(activeTab === 'saved' ? filteredCandidates.filter(c => c.saved) : filteredCandidates).map(candidate => (
+                    <div key={candidate.id} className="glass-card p-6 sm:p-7 rounded-3xl hover:shadow-xl transition-all flex flex-col justify-between border-2 border-transparent hover:border-blue-500/40">
+                      <div>
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                          <div className="flex items-center gap-3.5">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-600 text-white flex items-center justify-center text-xl font-bold shadow-md">
+                              {candidate.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">{candidate.name}</h3>
+                              <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                {candidate.age} anos • <i className="fas fa-map-marker-alt text-red-500"></i> {candidate.city}
+                              </div>
+                            </div>
+                          </div>
+
+                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300">
+                            {candidate.match}% Match
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 mb-4 italic">
+                          "{candidate.bio}"
+                        </p>
+
+                        <div className="space-y-2">
+                          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Habilidades Certificadas:</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {candidate.skills.map((skill, i) => (
+                              <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2">
+                        <button
+                          onClick={() => setOfferModalCandidate(candidate)}
+                          className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+                        >
+                          <i className="fas fa-paper-plane"></i> Enviar Oferta de Vaga
+                        </button>
+
+                        <button
+                          onClick={() => handleToggleSaveCandidate(candidate.id)}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                            candidate.saved
+                              ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+                              : 'glass-card hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
+                          }`}
+                          title={candidate.saved ? "Salvo" : "Salvar candidato"}
+                        >
+                          <i className={`fas ${candidate.saved ? 'fa-bookmark' : 'fa-bookmark'}`}></i>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {filteredCandidates.length === 0 && (
+                  <div className="text-center py-16 glass-card rounded-3xl">
+                    <i className="fas fa-search text-4xl text-slate-400 mb-3"></i>
+                    <h3 className="text-lg font-bold">Nenhum candidato encontrado</h3>
+                    <p className="text-xs text-slate-500 mt-1">Tente ajustar os filtros ou termos da pesquisa.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </main>
+
+          {/* MODAL DE ENVIO DE PROPOSTA */}
+          {offerModalCandidate && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+              <div className="glass-card w-full max-w-lg p-7 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold">Enviar Proposta de Vaga</h3>
+                  <button 
+                    onClick={() => setOfferModalCandidate(null)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                  Você está enviando uma oportunidade direta para <strong>{offerModalCandidate.name}</strong> ({offerModalCandidate.city}).
+                </p>
+
+                <form onSubmit={handleSendOffer} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Título da Oportunidade</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ex: Jovem Aprendiz Administrativo ou Estágio TI"
+                      className="w-full px-4 py-2.5 rounded-xl glass-card text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Bolsa / Salário e Benefícios</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ex: R$ 1.250,00 + Vale Transporte + VT"
+                      className="w-full px-4 py-2.5 rounded-xl glass-card text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Mensagem de Apresentação</label>
+                    <textarea
+                      rows="3"
+                      required
+                      value={offerMessage}
+                      onChange={(e) => setOfferMessage(e.target.value)}
+                      placeholder="Olá! Vimos seu perfil e suas certificações no EducaJovem e gostaríamos de te convidar para uma entrevista..."
+                      className="w-full px-4 py-2.5 rounded-xl glass-card text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    ></textarea>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setOfferModalCandidate(null)}
+                      className="px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20"
+                    >
+                      Enviar Proposta Oficial
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* FOOTER GLOBAL */}
+          <footer className="border-t border-slate-200 dark:border-slate-800 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+            <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <i className="fas fa-graduation-cap text-blue-600 text-base"></i>
+                <span className="font-bold text-slate-700 dark:text-slate-300">EducaJovem</span> • Plataforma de Qualificação & Empregabilidade
+              </div>
+              <div>
+                Criado com orgulho e tecnologia para transformar o futuro de jovens talentos.
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
 </body>
 </html>
