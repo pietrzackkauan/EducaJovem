@@ -1,1 +1,120 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>EducaJovem</title><script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script><script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script><script src="https://unpkg.com/@babel/standalone/babel.min.js"></script><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"></head><body class="font-Inter"><div id="root"></div><script type="text/babel">const { useState, useEffect, useMemo } = React;const palette = {royalBlue: "#1E3A8A", gold: "#F59E0B", white: "#FFFFFF", grayLight: "#F3F4F6", grayMedium: "#6B7280", black: "#000000", darkBg: "#1f2937",};const lsGet = (key, defaultValue) => {if (typeof window === "undefined") return defaultValue;try {const val = localStorage.getItem(key);if (!val) return defaultValue;return JSON.parse(val);} catch {return defaultValue;}};const lsSet = (key, value) => {localStorage.setItem(key, JSON.stringify(value));};function EducaJovem() {const [darkMode, setDarkMode] = useState(lsGet("ej-darkMode", false));useEffect(() => {lsSet("ej-darkMode", darkMode);if (darkMode) {document.body.style.backgroundColor = palette.darkBg;document.body.style.color = palette.white;} else {document.body.style.backgroundColor = palette.grayLight;document.body.style.color = palette.black;}}, [darkMode]);const [user, setUser] = useState(lsGet("ej-user", null));const [section, setSection] = useState(lsGet("ej-section", null));const loginAluno = (email, senha) => {return true;};return (<div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen"><div className="p-5"><h2 className="text-3xl text-transparent bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text">EducaJovem</h2></div></div>);}ReactDOM.createRoot(document.getElementById('root')).render(<EducaJovem />);</script></body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EducaJovem</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.4.0/confetti.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .dark-mode { background-color: #1a1a2e; color: #eaeaea; }
+        .light-mode { background-color: #f5f5f5; color: #333; }
+    </style>
+</head>
+<body class="light-mode">
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+        const coursesData = [
+            { id: 1, title: 'JavaScript para Iniciantes', progress: 60, certificate: false },
+            { id: 2, title: 'React Completo', progress: 100, certificate: true },
+            { id: 3, title: 'Node.js Avançado', progress: 30, certificate: false },
+            { id: 4, title: 'Desenvolvimento Web', progress: 80, certificate: false }
+        ];
+
+        const jobData = [
+            { id: 1, title: 'Desenvolvedor Frontend', company: 'Tech Company', saved: false },
+            { id: 2, title: 'Analista de Dados', company: 'Data Corp', saved: false },
+            { id: 3, title: 'Gerente de Projetos', company: 'Business Inc', saved: false }
+        ];
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('student');
+            const [darkMode, setDarkMode] = useState(false);
+            const [courses, setCourses] = useState(coursesData);
+            const [jobs, setJobs] = useState(jobData);
+            const [searchTerm, setSearchTerm] = useState('');
+
+            useEffect(() => {
+                const savedMode = localStorage.getItem('darkMode');
+                if (savedMode) setDarkMode(JSON.parse(savedMode));
+            }, []);
+
+            const toggleMode = () => {
+                setDarkMode(!darkMode);
+                localStorage.setItem('darkMode', !darkMode);
+            };
+
+            const filteredJobs = useMemo(() => {
+                return jobs.filter(job => job.title.toLowerCase().includes(searchTerm.toLowerCase()));
+            }, [jobs, searchTerm]);
+
+            const handleAddCourse = (course) => {
+                setCourses([...courses, course]);
+                showToast('Curso adicionado!');
+            };
+
+            const handleSaveJob = (id) => {
+                const updatedJobs = jobs.map(job => job.id === id ? { ...job, saved: !job.saved } : job);
+                setJobs(updatedJobs);
+                showToast('Job atualizado!');
+            };
+
+            const showToast = (message) => {
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 right-4 bg-blue-600 text-white p-4 rounded shadow-lg';
+                toast.innerText = message;
+                document.body.appendChild(toast);
+                setTimeout(() => { document.body.removeChild(toast); }, 3000);
+            };
+
+            return (
+                <div className={darkMode ? 'dark-mode' : 'light-mode'}>
+                    <header className="flex justify-between items-center p-4 bg-blue-800 text-white">
+                        <h1 className="text-xl font-bold">EducaJovem</h1>
+                        <button onClick={toggleMode} className="bg-gray-700 p-2 rounded">{darkMode ? 'Light Mode' : 'Dark Mode'}</button>
+                    </header>
+                    <div className="flex justify-around mt-4">
+                        <button onClick={() => setActiveTab('student')} className="p-2 bg-blue-600 text-white rounded">Portal do Aluno</button>
+                        <button onClick={() => setActiveTab('company')} className="p-2 bg-blue-600 text-white rounded">Portal da Empresa</button>
+                    </div>
+                    {activeTab === 'student' ? (
+                        <div className="p-4">
+                            <h2 className="text-2xl font-bold mb-4">Cursos</h2>
+                            {courses.map(course => (
+                                <div key={course.id} className="border p-4 mb-2">
+                                    <h3 className="font-semibold">{course.title}</h3>
+                                    <p>Progresso: {course.progress}%</p>
+                                    <p>{course.certificate ? 'Certificado disponível' : 'Certificado não disponível'}</p>
+                                </div>
+                            ))}
+                            <button onClick={() => handleAddCourse({ id: 5, title: 'Novo Curso', progress: 0, certificate: false })} className="mt-4 p-2 bg-green-500 text-white rounded">Adicionar Curso</button>
+                        </div>
+                    ) : (
+                        <div className="p-4">
+                            <h2 className="text-2xl font-bold mb-4">Banco de Talentos</h2>
+                            <input type="text" placeholder="Buscar vagas..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="p-2 border mb-4" />
+                            {filteredJobs.map(job => (
+                                <div key={job.id} className="border p-4 mb-2">
+                                    <h3 className="font-semibold">{job.title}</h3>
+                                    <p>Empresa: {job.company}</p>
+                                    <button onClick={() => handleSaveJob(job.id)} className={`mt-2 p-2 ${job.saved ? 'bg-red-500' : 'bg-blue-500'} text-white rounded`}>{job.saved ? 'Remover' : 'Salvar'}</button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
