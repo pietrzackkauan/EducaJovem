@@ -1,18 +1,18 @@
 # EducaJovem
 
 ## Descrição
-Plataforma de Empregabilidade Jovem conectando jovens e empresas com oportunidades e aprendizado.
+Plataforma de Empregabilidade Jovem.
 
 ## Tecnologias Usadas
-- React 18
+- React
 - Tailwind CSS
-- FontAwesome 6
+- FontAwesome
 
 ## Funcionalidades
-- Cadastro de usuários (alunos e empresas)
-- Painel de controle para alunos e empresas
-- Dashboard interativo
-- Modo claro/escuro
+- Cadastro e login para alunos e empresas.
+- Visualização e gerenciamento de cursos.
+- Recomendação de talentos para empresas.
+- Modo claro e escuro.
 
 ## Créditos
 Criado via ChaTIAdo.
